@@ -1,0 +1,3 @@
+@{ 
+    'RobDesideri/PowerShellTestingHelpers' = 'develop'
+}

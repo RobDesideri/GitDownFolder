@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>0e5a9af7-cb91-4bf3-9d5c-af9e30536f7c</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>GitDownFolder</RootNamespace>
+    <AssemblyName>GitDownFolder</AssemblyName>
+    <Name>GitDownFolder</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="docs\" />
+    <Folder Include="test\" />
+    <Folder Include="test\lib" />
+    <Folder Include="src\" />
+    <Folder Include="src\docs\" />
+    <Folder Include="src\lib\" />
+    <Folder Include="src\script\" />
+    <Folder Include="src\script\private\" />
+    <Folder Include="src\script\public\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ScriptAnalyzerSettings.psd1" />
+    <Compile Include="src\GitDownFolder.psd1" />
+    <Compile Include="src\GitDownFolder.psm1" />
+    <Compile Include="src\Depends.psd1" />
+    <Compile Include="test\GitDownFolder.private.tests.ps1" />
+    <Compile Include="test\GitDownFolder.public.tests.ps1" />
+    <Compile Include="test\GitDownFolder.tests.ps1" />
+    <Compile Include="test\InstallTestingDepends.ps1" />
+    <Compile Include="test\TestDepends.psd1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="InstallPSDepend.ps1" />
+    <Content Include="LICENSE.txt" />
+    <Content Include="README.md" />
+    <Content Include="ReleaseNotes.md" />
+    <Content Include="src\README.md" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="Build" />
+</Project>
