@@ -42,6 +42,7 @@
     <Compile Include="src\GitDownFolder.psd1" />
     <Compile Include="src\GitDownFolder.psm1" />
     <Compile Include="src\Depends.psd1" />
+    <Compile Include="src\script\public\Invoke-GitDownFolder.ps1" />
     <Compile Include="test\GitDownFolder.private.tests.ps1" />
     <Compile Include="test\GitDownFolder.public.tests.ps1" />
     <Compile Include="test\GitDownFolder.tests.ps1" />
