@@ -109,12 +109,23 @@ Function Test-SingletonIsLive ($SingletonClassName)
 		Return $true
 	}
 }
+Function Get-Singleton ($ObjectClassName)
+{
+	$chk = Test-SingletonIsLive -SingletonClassName $ObjectClassName
+	If($chk)
+	{
+		$svn = Get-SingletonVarName -SingletonClassName $ObjectClassName
+		$sg = Get-Variable -Name $svn -ValueOnly
+		Return $sg
+	} Else {
+		Return $null
+	}
+}
 Function New-Singleton ($SingletonClass, $ParamArray)
 {
 	$className = $SingletonClass.Name
 	$chk = Test-SingletonIsLive -SingletonClassName $className
 	If(-not($chk)){
-		Format-SingletonParameter -SingletonClass $SingletonClass -ParameterArray $ParamArray #NON utile, solo per prova. Prova OK!
 		[Array]$ob = @()
 		$i = 0
 		Foreach ($item in $ParamArray)
@@ -127,75 +138,6 @@ Function New-Singleton ($SingletonClass, $ParamArray)
 		New-Variable -Name $sn -Visibility Private -Scope global -Value $tmpOb
 		Return $sn
 	} 
-}
-
-Function Get-ConstructorByParam([Type]$Type, [Array]$ParamArray)
-{
-	$n = $ParamArray.Count
-	[Array]$typesArray = @()
-	Foreach ($item in $ParamArray)
-	{
-		$typesArray += $item.GetType()
-	}
-	[Reflection.ConstructorInfo[]]$rcis = Get-ConstructorByParamNumber -Type $Type -ParamNumber $n
-	[Reflection.ConstructorInfo]$rci = Get-ConstructorByParamType -ConstructorsArray $rcis -TypesArray $typesArray
-	Return $rci
-}
-
-Function Get-ConstructorByParamNumber ([Type]$Type, [Int]$ParamNumber)
-{
-	$arr = [Array]::CreateInstance([Reflection.ConstructorInfo], 0)
-	
-	Foreach ($item in $Type.GetConstructors())
-	{
-		$params = $item.GetParameters()
-		$count = $params.Count
-		If($count -eq $ParamNumber)
-		{
-			$arr += $item
-		}
-	}
-	Return $arr
-}
-
-Function Get-ConstructorByParamType ([Reflection.ConstructorInfo[]]$ConstructorsArray, [Array]$TypesArray)
-{
-	Foreach ($item in $ConstructorsArray)
-	{
-		$i = 0
-		[Boolean]$chk = $true
-		Foreach ($param in $item.GetParameters())
-		{
-			If($param.ParameterType -eq $TypesArray[$i])
-			{
-				$chk = $chk -and $true
-			}
-			Else 
-			{
-				Break
-			}
-			$i++
-		}
-		If(($i -eq $TypesArray.Count) -and ($chk -eq $true)) {Return [Reflection.ConstructorInfo]$item; Exit}
-	}
-}
-
-Function Format-SingletonParameter ($SingletonClass, $ParameterArray)
-{
-	$cnt = Get-ConstructorByParam -Type $SingletonClass -ParamArray $ParameterArray
-}
-
-Function Get-Singleton ($ObjectClassName)
-{
-	$chk = Test-SingletonIsLive -SingletonClassName $ObjectClassName
-	If($chk)
-	{
-		$svn = Get-SingletonVarName -SingletonClassName $ObjectClassName
-		$sg = Get-Variable -Name $svn -ValueOnly
-		Return $sg
-	} Else {
-		Return $null
-	}
 }
 
 #Factories 
@@ -363,9 +305,25 @@ Function Start-FilesFoldersScan ([GitFolderList]$GitFolderList)
 		}
 	}
 }
+Function Move-GitFolder($DestPath, [Switch]$KeepRootFolderPath)
+{
+	$gdo = Get-GlobalGitDataObject
+	$tf = $gdo.TempFolder
+	If (-not($KeepRootFolderPath))
+	{
+		$fdp = $gdo.FirstDirPath
+		$sp = "$tf\$fdp\*"
+	}
+	Else
+	{
+		$sp = "$tf\*"
+	}
+	
+	Move-Item -Path $sp -Destination $DestPath
+}
 
 #MAIN
-function Invoke-GitDownFolder([String]$GitFolderUrlToDownload)
+Function Invoke-GitDownFolder($GitFolderUrlToDownload, $DestinationPath)
 {
 	$UrlObj = Get-SystemUriFromUrl -Url $GitFolderUrlToDownload
 	Set-ScriptVars -UrlAsObject $UrlObj
@@ -374,9 +332,8 @@ function Invoke-GitDownFolder([String]$GitFolderUrlToDownload)
 	$rootFolderList = New-GitFolderList
 	$rootFolderList.AddFolder($rootFolder)
 	Start-FilesFoldersScan -GitFolderList $rootFolderList
+	Move-GitFolder -DestPath $DestinationPath -KeepRootFolderPath
 }
 
 $testUrl = "https://github.com/RobDesideri/PowerShellTestingHelpers/tree/develop/src/"
-Invoke-GitDownFolder -GitFolderUrlToDownload $testUrl
-
-#TODO portare poi la cartella nella posizione desiderata e cancellare la cartella temporanea
+Invoke-GitDownFolder -GitFolderUrlToDownload $testUrl -DestinationPath "D:\tmp\gdf1"
