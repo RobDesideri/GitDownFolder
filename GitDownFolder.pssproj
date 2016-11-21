@@ -42,7 +42,16 @@
     <Compile Include="src\GitDownFolder.psd1" />
     <Compile Include="src\GitDownFolder.psm1" />
     <Compile Include="src\Depends.psd1" />
+    <Compile Include="src\script\private\Get-GlobalGitDataObject.ps1" />
+    <Compile Include="src\script\private\Get-SystemUriFromUrl.ps1" />
+    <Compile Include="src\script\private\GitFoldersFilesClasses.ps1" />
+    <Compile Include="src\script\private\Move-GitFolder.ps1" />
+    <Compile Include="src\script\private\New-TemporaryFolder.ps1" />
+    <Compile Include="src\script\private\Singleton-Handler.ps1" />
+    <Compile Include="src\script\private\Start-FilesDownload.ps1" />
+    <Compile Include="src\script\private\Start-FilesFoldersScan.ps1" />
     <Compile Include="src\script\public\Invoke-GitDownFolder.ps1" />
+    <Compile Include="src\script\private\Set-ScriptVars.ps1" />
     <Compile Include="test\GitDownFolder.private.tests.ps1" />
     <Compile Include="test\GitDownFolder.public.tests.ps1" />
     <Compile Include="test\GitDownFolder.tests.ps1" />
@@ -55,6 +64,7 @@
     <Content Include="README.md" />
     <Content Include="ReleaseNotes.md" />
     <Content Include="src\README.md" />
+    <Content Include="src\script\private\New-Folder.ps1" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
