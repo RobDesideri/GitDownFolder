@@ -1,6 +1,6 @@
 try
 {
-	Save-Module -Name PSDepend -Path "$PSScriptRoot\src\lib" -Force
+	Save-Module -Name PSDepend -Path "$PSScriptRoot\lib" -Force
     
 }
 catch [System.Management.Automation.CommandNotFoundException]
