@@ -41,7 +41,7 @@
     <Compile Include="ScriptAnalyzerSettings.psd1" />
     <Compile Include="src\GitDownFolder.psd1" />
     <Compile Include="src\GitDownFolder.psm1" />
-    <Compile Include="src\Depends.psd1" />
+    <Compile Include="Depends.psd1" />
     <Compile Include="src\script\private\Get-GlobalGitDataObject.ps1" />
     <Compile Include="src\script\private\Get-SystemUriFromUrl.ps1" />
     <Compile Include="src\script\private\GitFoldersFilesClasses.ps1" />

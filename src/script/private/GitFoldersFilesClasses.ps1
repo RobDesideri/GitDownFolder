@@ -90,8 +90,6 @@ Class GlobalGitDataObject
 	}
 }
 
-
-
 #Factories 
 Function New-GlobalGitDataObject($UrlToParse, $TempFolder)
 {
