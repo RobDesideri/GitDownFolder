@@ -1,10 +1,4 @@
-Class ParsedGitUrl
-{
-	[String]$Author
-	[String]$Repo
-	[String]$Branch
-	[String]$DirPath
-}
+#Classes Definition
 Class GitFolder
 {
     [String]$Name
@@ -35,7 +29,6 @@ Class GitFolderList
 		Return $cnt
 	}
 }
-
 Class GitFile
 {
 	[String]$Name
@@ -62,20 +55,155 @@ Class GitFileList
 		Return $cnt
 	}
 }
-New-Variable -Name UrlPrePrefix -Value 'https://api.github.com/repos/' -Scope script -Option ReadOnly
-New-Variable -Name UrlPrePostfix -Value '?ref=' -Scope script -Option ReadOnly
-New-Variable -Name UrlPostPrefix -Value 'contents' -Scope script -Option ReadOnly
-
-Function Get-SystemUriFromUrl ([string]$Url)
+Class GitDataObject
 {
-	$uri = ($url -as [System.Uri])
-	Return $uri
+	[String]$Author
+	[String]$Repo
+	[String]$Branch
+	[String]$FirstDirPath
+	[String]$TempFolder
+}
+Class GlobalGitDataObject
+{
+	[String]$UrlPrePrefix = 'https://api.github.com/repos/'
+	[String]$UrlPrePostfix = '?ref='
+	[String]$UrlPostPrefix = 'contents'
+	[String]$Author
+	[String]$Repo
+	[String]$Branch
+	[String]$FirstDirPath
+	[String]$TempFolder
+	
+	GlobalGitDataObject(
+		[String]$Author,
+		[String]$Repo,
+		[String]$Branch,
+		[String]$FirstDirPath,
+		[String]$TempFolder
+	)
+	{
+		$this.Author = $Author
+		$this.Repo = $Repo
+		$this.Branch = $Branch
+		$this.FirstDirPath = $FirstDirPath
+		$this.TempFolder = $TempFolder
+	}
 }
 
-Function Set-ScriptVars([System.Uri]$Url)
+#Singleton Pattern
+Function Get-SingletonVarName ($SingletonClassName)
 {
-	$tmpFld = New-TemporaryFolder
-	[string]$abs = $Url.AbsolutePath
+    $sn = "__" + $SingletonClassName + "SingletonLive__"
+	Return $sn
+}
+Function Test-SingletonIsLive ($SingletonClassName)
+{
+	$sl = $null
+	$sn = Get-SingletonVarName -SingletonClassName $SingletonClassName
+    $sl = Get-Variable -Name $sn -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+
+	if($sl -eq $null)
+	{
+		Return $false
+	} Else {
+		Return $true
+	}
+}
+Function New-Singleton ($SingletonClass, $ParamArray)
+{
+	$className = $SingletonClass.Name
+	$chk = Test-SingletonIsLive -SingletonClassName $className
+	If(-not($chk)){
+		Format-SingletonParameter -SingletonClass $SingletonClass -ParameterArray $ParamArray #NON utile, solo per prova. Prova OK!
+		[Array]$ob = @()
+		$i = 0
+		Foreach ($item in $ParamArray)
+		{
+			$ob += $ParamArray[$i]
+			$i++
+		}
+		$tmpOb = New-Object -TypeName $className -ArgumentList $ob
+		$sn = Get-SingletonVarName -SingletonClassName $className
+		New-Variable -Name $sn -Visibility Private -Scope global -Value $tmpOb
+		Return $sn
+	} 
+}
+
+Function Get-ConstructorByParam([Type]$Type, [Array]$ParamArray)
+{
+	$n = $ParamArray.Count
+	[Array]$typesArray = @()
+	Foreach ($item in $ParamArray)
+	{
+		$typesArray += $item.GetType()
+	}
+	[Reflection.ConstructorInfo[]]$rcis = Get-ConstructorByParamNumber -Type $Type -ParamNumber $n
+	[Reflection.ConstructorInfo]$rci = Get-ConstructorByParamType -ConstructorsArray $rcis -TypesArray $typesArray
+	Return $rci
+}
+
+Function Get-ConstructorByParamNumber ([Type]$Type, [Int]$ParamNumber)
+{
+	$arr = [Array]::CreateInstance([Reflection.ConstructorInfo], 0)
+	
+	Foreach ($item in $Type.GetConstructors())
+	{
+		$params = $item.GetParameters()
+		$count = $params.Count
+		If($count -eq $ParamNumber)
+		{
+			$arr += $item
+		}
+	}
+	Return $arr
+}
+
+Function Get-ConstructorByParamType ([Reflection.ConstructorInfo[]]$ConstructorsArray, [Array]$TypesArray)
+{
+	Foreach ($item in $ConstructorsArray)
+	{
+		$i = 0
+		[Boolean]$chk = $true
+		Foreach ($param in $item.GetParameters())
+		{
+			If($param.ParameterType -eq $TypesArray[$i])
+			{
+				$chk = $chk -and $true
+			}
+			Else 
+			{
+				Break
+			}
+			$i++
+		}
+		If(($i -eq $TypesArray.Count) -and ($chk -eq $true)) {Return [Reflection.ConstructorInfo]$item; Exit}
+	}
+}
+
+Function Format-SingletonParameter ($SingletonClass, $ParameterArray)
+{
+	$cnt = Get-ConstructorByParam -Type $SingletonClass -ParamArray $ParameterArray
+}
+
+Function Get-Singleton ($ObjectClassName)
+{
+	$chk = Test-SingletonIsLive -SingletonClassName $ObjectClassName
+	If($chk)
+	{
+		$svn = Get-SingletonVarName -SingletonClassName $ObjectClassName
+		$sg = Get-Variable -Name $svn -ValueOnly
+		Return $sg
+	} Else {
+		Return $null
+	}
+}
+
+#Factories 
+Function New-GlobalGitDataObject($UrlToParse, $TempFolder)
+{
+	$abs = $UrlToParse.AbsolutePath
+
+	#Clean first and last '/' char
 	If($abs.StartsWith("/"))
 	{
 		$abs = $abs.Substring(1)
@@ -85,31 +213,31 @@ Function Set-ScriptVars([System.Uri]$Url)
 		$abs = $abs.Substring(0,($abs.Length - 1))
 	}
 	$arr = $abs -split "\/"
-	$author = $arr[0]
-	$repo = $arr[1]
-	$branch = $arr[3]
+	
+	#Get dirPath
 	for ($x = 4; $x -lt ($arr.Count); $x++)
 	{
 			$dirPath += $arr[$x]
 	}
-	New-Variable -Name Author -Value $author -Scope script
-	New-Variable -Name Repo -Value $repo -Scope script
-	New-Variable -Name Branch -Value $branch -Scope script
-	New-Variable -Name FirstDirPath -Value $dirPath -Scope script
-	New-Variable -Name TempFolder -Value $tmpFld -Scope script
-
+	$parsed = (0..4) 
+	$parsed[0] = $arr[0]
+	$parsed[1] = $arr[1]
+	$parsed[2] = $arr[3]
+	$parsed[3] = $dirPath
+	$parsed[4] = $TempFolder
+	$t = [GlobalGitDataObject]
+	New-Singleton -SingletonClass $t -ParamArray $parsed
 }
-
-Function New-GitFolder ([String]$FolderName, [String]$DirPath)
+Function New-GitFolder ($FolderName, $DirPath)
 {
 	$fld = New-Object -TypeName GitFolder
 	$fld.Name = $FolderName
-	$fld.UrlPrefix = $UrlPrePrefix + $script:Author + '/' + $script:Repo + '/' + $UrlPostPrefix + '/'
-	$fld.UrlPostfix = $UrlPrePostfix + $script:Branch
+	$gdo = Get-GlobalGitDataObject
+	$fld.UrlPrefix = $gdo.UrlPrePrefix + $gdo.Author + '/' + $gdo.Repo + '/' + $gdo.UrlPostPrefix + '/'
+	$fld.UrlPostfix = $gdo.UrlPrePostfix + $gdo.Branch
 	$fld.DirPath = $DirPath
 	Return [GitFolder]$fld
 }
-
 Function New-GitFile ([String]$FileName, [String]$FilePath, [String]$FileUrl, [String]$FileSize)
 {
 	$newFile = New-Object -TypeName GitFile
@@ -119,7 +247,14 @@ Function New-GitFile ([String]$FileName, [String]$FilePath, [String]$FileUrl, [S
 	$newFile.Size = $FileSize
 	Return $newFile
 }
-
+Function New-GitFolderList()
+{
+	Return New-Object -TypeName GitFolderList
+}
+Function New-GitFileList()
+{
+	Return New-Object -TypeName GitFileList
+}
 Function New-TemporaryFolder()
 {
 	$tmpDir = [System.IO.Path]::GetTempPath()
@@ -127,7 +262,6 @@ Function New-TemporaryFolder()
 	[System.IO.Directory]::CreateDirectory($tmpDir) | Out-Null
 	Return $tmpDir
 }
-
 Function New-Folder([String]$Path)
 {
 	$chk = Test-Path -Path $Path -PathType Container
@@ -136,14 +270,36 @@ Function New-Folder([String]$Path)
 	}
 }
 
+#Mediators
+Function Get-GlobalGitDataObject()
+{
+	$gdo = Get-Singleton -ObjectClassName "GlobalGitDataObject"
+	Return $gdo
+}
+
+#Initializator
+Function Set-ScriptVars($UrlAsObject)
+{
+	$tmpFld = New-TemporaryFolder
+	#$pUrl = Get-ParseGitUrl -Url $Url
+	New-GlobalGitDataObject -UrlToParse $UrlAsObject -TempFolder $tmpFld
+}
+
+#Functions
+Function Get-SystemUriFromUrl ([string]$Url)
+{
+	$uri = ($url -as [System.Uri])
+	Return $uri
+}
 Function Start-FilesDownload ([GitFolder]$GitFolder)
 {
 	$gfl = $GitFolder.GitFileList
 	$c = $gfl.CountFiles()
+	$gdo = Get-GlobalGitDataObject
 	for ($x = 0; $x -lt $c; $x++)
 	{
 		$fl = $gfl.GetFile($x)
-		$p = $script:TempFolder + "\" + $fl.Path
+		$p = $gdo.TempFolder + "\" + $fl.Path
 		$p = $p -replace '\/', '\'
 		$p = Split-Path -Path $p -Parent
 		$n = $fl.Name
@@ -152,8 +308,7 @@ Function Start-FilesDownload ([GitFolder]$GitFolder)
 	}
 	Remove-Variable -Name gfl
 }
-
-function Get-RepoMap ([GitFolderList]$GitFolderList)
+Function Start-FilesFoldersScan ([GitFolderList]$GitFolderList)
 {
 	$rt = @{'responseType' = 'arraybuffer'}
 	$c = $GitFolderList.CountFolders()
@@ -199,7 +354,7 @@ function Get-RepoMap ([GitFolderList]$GitFolderList)
 		Remove-Variable -Name newGitFileList -Force
 		If($($newGitFolderList.CountFolders()) -gt 0)
 		{
-			Get-RepoMap -GitFolderList $newGitFolderList
+			Start-FilesFoldersScan -GitFolderList $newGitFolderList
 		}
 	}
 	If($($thisFolder.GitFileList) -ne $null){
@@ -209,62 +364,19 @@ function Get-RepoMap ([GitFolderList]$GitFolderList)
 	}
 }
 
-function Get-FileAndDirectoryMap ([GitFolderList]$GitFldLst)
+#MAIN
+function Invoke-GitDownFolder([String]$GitFolderUrlToDownload)
 {
-	$rt = @{'responseType' = 'arraybuffer'}
-	$c = $GitFldLst.CountFolders()
-	$gitFl = New-Object -TypeName GitFolder
-	$resp = $null
-	$jsonObj = $null
-	$gitFileList = New-Object -TypeName System.Collections.ArrayList
-
-	for ($x = 0; $x -lt $c; $x++)
-	{
-		$gitFl = $GitFldLst.GetFolder($x)
-		[String]$uri = $gitFl.UrlPrefix + $gitFl.DirPath + $gitFl.UrlPostfix
-		$resp = Invoke-Webrequest -Uri $uri -Method Get -Headers $rt
-		$jsonObj = ConvertFrom-Json -InputObject $resp.Content
-		
-		foreach ($item in $jsonObj)
-		{
-			switch ($item.type)
-			{
-				'dir'
-				{
-					$newFld = New-Object -TypeName GitFolder
-					$newFld.DirPath = $item.path
-					$GitFldLst.AddFolder($newFld)
-					Remove-Variable -Name $newFld
-				}
-				'file'
-				{
-					$gitOb = New-Object -TypeName GitFile
-					$gitOb.Path = $item.path
-					$gitOb.Url = $item.download_url
-					Set-GitFile -InputObject $gitOb
-					$gitFileList.Add($gitOb)
-					Remove-Variable -Name $gitOb
-				}
-		}
-		}
-	}
-
-	if($GitFldLst.CountFolder -lt 1)
-	{
-		Import-GitFile -GitFileList $gitFileList -GitFolder $GitRes
-	} Else {
-		Get-FileAndDirectoryMap $GitFldLst
-	}
+	$UrlObj = Get-SystemUriFromUrl -Url $GitFolderUrlToDownload
+	Set-ScriptVars -UrlAsObject $UrlObj
+	$gdo = Get-GlobalGitDataObject
+	$rootFolder =  New-GitFolder -FolderName "ROOT" -DirPath $gdo.FirstDirPath
+	$rootFolderList = New-GitFolderList
+	$rootFolderList.AddFolder($rootFolder)
+	Start-FilesFoldersScan -GitFolderList $rootFolderList
 }
-$testUrl = "https://github.com/RobDesideri/PowerShellTestingHelpers/tree/develop/src/"
-$thisParsedUrl = New-Object -TypeName ParsedGitUrl
-$rootFolder = New-Object -TypeName GitFolder
-$folders = New-Object -TypeName GitFolderList
 
-$thisUrl = Get-SystemUriFromUrl -Url $testUrl
-Set-ScriptVars -Url $thisUrl
-$rootFolder =  New-GitFolder -FolderName "ROOT" -DirPath $script:FirstDirPath
-$folders.AddFolder($rootFolder)
-$thisMap = Get-RepoMap $folders
+$testUrl = "https://github.com/RobDesideri/PowerShellTestingHelpers/tree/develop/src/"
+Invoke-GitDownFolder -GitFolderUrlToDownload $testUrl
 
 #TODO portare poi la cartella nella posizione desiderata e cancellare la cartella temporanea
