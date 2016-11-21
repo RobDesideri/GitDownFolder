@@ -91,9 +91,23 @@ Class GlobalGitDataObject
 }
 
 #Factories 
-Function New-GlobalGitDataObject($UrlToParse, $TempFolder)
-{
-	$abs = $UrlToParse.AbsolutePath
+Function New-GlobalGitDataObject{
+	param(
+		[System.Uri]$UrlToParse,
+		[String]$TempFolder
+	)
+
+	try
+	{
+		$abs = $UrlToParse.AbsolutePath
+	}
+	catch [System.Exception]
+	{
+		Throw "Bad url parameter"
+	}
+	finally
+	{
+	}
 
 	#Clean first and last '/' char
 	If($abs.StartsWith("/"))
@@ -109,8 +123,11 @@ Function New-GlobalGitDataObject($UrlToParse, $TempFolder)
 	#Get dirPath
 	for ($x = 4; $x -lt ($arr.Count); $x++)
 	{
-			$dirPath += $arr[$x]
+			$dirPath += $arr[$x] + "/"
 	}
+
+	$dirPath = $dirPath.Substring(0,($dirPath.Length - 1))
+
 	$parsed = (0..4) 
 	$parsed[0] = $arr[0]
 	$parsed[1] = $arr[1]
@@ -119,6 +136,8 @@ Function New-GlobalGitDataObject($UrlToParse, $TempFolder)
 	$parsed[4] = $TempFolder
 	$t = [GlobalGitDataObject]
 	New-Singleton -SingletonClass $t -ParamArray $parsed
+	[GlobalGitDataObject]$s = Get-Singleton -ObjectClassName $t.ToString()
+	Return ($s -as [GlobalGitDataObject])
 }
 Function New-GitFolder ($FolderName, $DirPath)
 {

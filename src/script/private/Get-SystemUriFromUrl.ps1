@@ -1,5 +1,14 @@
 Function Get-SystemUriFromUrl ([string]$Url)
 {
-	$uri = ($url -as [System.Uri])
-	Return $uri
+	$uk = [System.UriKind]::Absolute
+	$chk = [System.Uri]::IsWellFormedUriString($Url, $uk)
+	If($chk)
+	{
+		$uri = ($Url -as [System.Uri])
+		Return $uri
+	}
+	Else
+	{
+		Throw "Bad-formed url error"
+	}
 }

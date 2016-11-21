@@ -8,7 +8,7 @@ Function Test-SingletonIsLive ($SingletonClassName)
 {
 	$sl = $null
 	$sn = Get-SingletonVarName -SingletonClassName $SingletonClassName
-    $sl = Get-Variable -Name $sn -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+    $sl = Get-Variable -Name $sn -Scope global -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 
 	if($sl -eq $null)
 	{
@@ -23,7 +23,7 @@ Function Get-Singleton ($ObjectClassName)
 	If($chk)
 	{
 		$svn = Get-SingletonVarName -SingletonClassName $ObjectClassName
-		$sg = Get-Variable -Name $svn -ValueOnly
+		$sg = Get-Variable -Name $svn -ValueOnly -Scope global
 		Return $sg
 	} Else {
 		Return $null
@@ -43,7 +43,19 @@ Function New-Singleton ($SingletonClass, $ParamArray)
 		}
 		$tmpOb = New-Object -TypeName $className -ArgumentList $ob
 		$sn = Get-SingletonVarName -SingletonClassName $className
-		New-Variable -Name $sn -Visibility Private -Scope global -Value $tmpOb
+		New-Variable -Name $sn -Scope global -Visibility Private -Value $tmpOb
 		Return $sn
 	} 
+}
+
+Function Remove-Singleton ($ObjectClassName)
+{
+	$chk = Test-SingletonIsLive -SingletonClassName $ObjectClassName
+	If($chk)
+	{
+		$svn = Get-SingletonVarName -SingletonClassName $ObjectClassName
+		Remove-Variable -Name $svn -Force -Scope global
+	} Else {
+		Throw "Singleton not found"
+	}
 }
