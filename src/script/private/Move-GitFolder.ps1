@@ -4,7 +4,7 @@ Function Move-GitFolder($DestPath, $KeepRootFolderPath)
 	$tf = $gdo.TempFolder
 	If ($KeepRootFolderPath -eq $False)
 	{
-		[String]$fdp = $gdo.FirstDirPath
+		$fdp = $gdo.FirstDirPath
 		$sp = "$tf\$fdp\*"
 	}
 	Else

@@ -1,7 +1,6 @@
 Function Get-SystemUriFromUrl ([string]$Url)
 {
-	$uk = [System.UriKind]::Absolute
-	$chk = [System.Uri]::IsWellFormedUriString($Url, $uk)
+	$chk = Validate-AbsoluteUriByString -Uri $Url
 	If($chk)
 	{
 		$uri = ($Url -as [System.Uri])

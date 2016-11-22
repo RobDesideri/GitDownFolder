@@ -4,8 +4,12 @@ Function Get-SingletonVarName ($SingletonClassName)
     $sn = "__" + $SingletonClassName + "SingletonLive__"
 	Return $sn
 }
-Function Test-SingletonIsLive ($SingletonClassName)
+Function Test-SingletonIsLive
 {
+	param(
+		[Parameter(Mandatory=$True)]
+		[String]$SingletonClassName
+	)
 	$sl = $null
 	$sn = Get-SingletonVarName -SingletonClassName $SingletonClassName
     $sl = Get-Variable -Name $sn -Scope global -ErrorAction SilentlyContinue -WarningAction SilentlyContinue

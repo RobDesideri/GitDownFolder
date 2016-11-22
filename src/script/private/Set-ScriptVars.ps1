@@ -1,6 +1,19 @@
-Function Set-ScriptVars($UrlAsObject)
+Function Set-ScriptVars
 {
-	$tmpFld = New-TemporaryFolder
-	#$pUrl = Get-ParseGitUrl -Url $Url
-	New-GlobalGitDataObject -UrlToParse $UrlAsObject -TempFolder $tmpFld
+	param(
+		[Parameter(Mandatory=$True)]
+		[System.Uri]$UrlAsObject
+	)
+
+	$chk = Validate-AbsoluteUriBySystemUri -SysUri $UrlAsObject
+	
+	If($chk) 
+	{
+		$tmpFld = New-TemporaryFolder
+		New-GlobalGitDataObject -UrlToParse $UrlAsObject -TempFolder $tmpFld
+	}
+	Else
+	{
+		Throw "Bad Url"
+	}
 }
