@@ -90,41 +90,63 @@ Class GlobalGitDataObject
 	}
 }
 
-#Factories 
-Function New-GlobalGitDataObject{
-	param(
-		[System.Uri]$UrlToParse,
-		[String]$TempFolder
-	)
+Function Validate-GithubUrl ([System.Uri]$UrlToParse)
+{
+	$h = $UrlToParse.Host
+	$s = $UrlToParse.Scheme
+	$S = [System.Uri]::UriSchemeHttps
 
-	try
+	If(-not($h -eq "github.com" -and $s -eq $S))
 	{
-		$abs = $UrlToParse.AbsolutePath
-	}
-	catch [System.Exception]
-	{
-		Throw "Bad url parameter"
-	}
-	finally
-	{
+		Return $False
 	}
 
-	#Clean first and last '/' char
+	$abs = $UrlToParse.AbsolutePath
+
 	If($abs.StartsWith("/"))
 	{
 		$abs = $abs.Substring(1)
 	}
+
 	If($abs.EndsWith("/"))
 	{
 		$abs = $abs.Substring(0,($abs.Length - 1))
 	}
-	$arr = $abs -split "\/"
 	
+	$arr = $abs -split "\/"
+
+	#Check array length
+	If($arr.Length -lt 5)
+	{
+		Return $False
+	}
+
+	Return $arr
+
+
+}
+
+Function New-GlobalGitDataObject([System.Uri]$UrlToParse, [String]$TempFolder)
+{
+	$chk1 = Validate-AbsoluteUriBySystemUri -SysUri $UrlToParse
+	If($ch1 -eq $False)
+	{
+		Throw "Bad url parameter"
+	}
+
+
+	$chk2 = Validate-GithubUrl -UrlToParse $UrlToParse
+	If($ch2 -eq $False)
+	{
+		Throw "Url isn't a Git Url or is a bad-formed url"
+	}
+
+	$arr = $chk2
 	#Get dirPath
 	for ($x = 4; $x -lt ($arr.Count); $x++)
 	{
 			$dirPath += $arr[$x] + "/"
-	}
+	} 
 
 	$dirPath = $dirPath.Substring(0,($dirPath.Length - 1))
 
@@ -136,10 +158,15 @@ Function New-GlobalGitDataObject{
 	$parsed[4] = $TempFolder
 	$t = [GlobalGitDataObject]
 	New-Singleton -SingletonClass $t -ParamArray $parsed
-	[GlobalGitDataObject]$s = Get-Singleton -ObjectClassName $t.ToString()
-	Return ($s -as [GlobalGitDataObject])
 }
-Function New-GitFolder ($FolderName, $DirPath)
+
+Function Get-GlobalGitDataObject()
+{
+	$gdo = Get-Singleton -ObjectClassName "GlobalGitDataObject"
+	Return $gdo
+}
+
+Function New-GitFolder([String]$FolderName, [String]$DirPath)
 {
 	$fld = New-Object -TypeName GitFolder
 	$fld.Name = $FolderName
@@ -149,7 +176,8 @@ Function New-GitFolder ($FolderName, $DirPath)
 	$fld.DirPath = $DirPath
 	Return [GitFolder]$fld
 }
-Function New-GitFile ([String]$FileName, [String]$FilePath, [String]$FileUrl, [String]$FileSize)
+
+Function New-GitFile([String]$FileName, [String]$FilePath, [String]$FileUrl, [String]$FileSize)
 {
 	$newFile = New-Object -TypeName GitFile
 	$newFile.Name = $FileName
@@ -158,11 +186,14 @@ Function New-GitFile ([String]$FileName, [String]$FilePath, [String]$FileUrl, [S
 	$newFile.Size = $FileSize
 	Return $newFile
 }
+
 Function New-GitFolderList()
 {
 	Return New-Object -TypeName GitFolderList
 }
+
 Function New-GitFileList()
 {
 	Return New-Object -TypeName GitFileList
 }
+

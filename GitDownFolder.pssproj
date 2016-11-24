@@ -36,14 +36,14 @@
     <Folder Include="src\script\" />
     <Folder Include="src\script\private\" />
     <Folder Include="src\script\public\" />
+    <Folder Include="test\data\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ScriptAnalyzerSettings.psd1" />
     <Compile Include="src\GitDownFolder.psd1" />
     <Compile Include="src\GitDownFolder.psm1" />
     <Compile Include="Depends.psd1" />
-    <Compile Include="src\script\private\Commons-Validator.ps1" />
-    <Compile Include="src\script\private\Get-GlobalGitDataObject.ps1" />
+    <Compile Include="src\script\private\Commons-Validators.ps1" />
     <Compile Include="src\script\private\Get-SystemUriFromUrl.ps1" />
     <Compile Include="src\script\private\GitFoldersFilesClasses.ps1" />
     <Compile Include="src\script\private\Move-GitFolder.ps1" />
@@ -53,6 +53,7 @@
     <Compile Include="src\script\private\Start-FilesFoldersScan.ps1" />
     <Compile Include="src\script\public\Invoke-GitDownFolder.ps1" />
     <Compile Include="src\script\private\Set-ScriptVars.ps1" />
+    <Compile Include="test\data\data.ps1" />
     <Compile Include="test\GitDownFolder.private.tests.ps1" />
     <Compile Include="test\GitDownFolder.public.tests.ps1" />
     <Compile Include="test\GitDownFolder.tests.ps1" />

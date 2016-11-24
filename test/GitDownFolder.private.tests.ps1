@@ -25,7 +25,7 @@ Function New-CustomObject
 	Return $a
 }
 
-Function New-CustomTypedObject ($TypeName)
+Function New-CustomTypedObject ([String]$TypeName)
 {
 	$a = New-Object -TypeName $TypeName
 	Return $a
@@ -45,109 +45,206 @@ Function New-FakeGdo ()
 	Return $fkObj
 }
 
-Function New-FakeUri ()
+Function Get-UriFromString ([String]$UriString)
 {
-	$url = [System.Uri]::new("https://github.com/RobDesideri/GitDownFolder/tree/develop/test/resources")
+	$uri = [System.Uri]::new("$UriString")
+	Return $uri
+}
+
+Function New-FakeGitUri {
+	param(
+		[String]$Author,
+		[String]$Repo,
+		[String]$Branch,
+		[String]$RootFolder
+	)
+	
+	Get-FakeGitAccountDetails -Author $Author -Repo $Repo -Branch $Branch -RootFolder $RootFolder
+
+	$fu = 'https://github.com/' + "$Author" + '/' + "$Repo" + '/' + 'tree' + '/' + "$Branch" + '/' + "$RootFolder"
+
+	$url = [System.Uri]::new("$fu")
 	Return $url
 }
 
-#Test begin!
+Function Get-FakeGitAccountDetails {
+	param(
+		[String]$Author,
+		[String]$Repo,
+		[String]$Branch,
+		[String]$RootFolder
+	)
 
+	$fad = New-Object -TypeName PSCustomObject
+	Add-Member -InputObject $fad -MemberType NoteProperty -Name "Author" -Value $Author
+	Add-Member -InputObject $fad -MemberType NoteProperty -Name "Repo" -Value $Repo
+	Add-Member -InputObject $fad -MemberType NoteProperty -Name "Branch" -Value $Branch
+	Add-Member -InputObject $fad -MemberType NoteProperty -Name "RootFolder" -Value $RootFolder
+
+	Return $fad
+
+}
+
+Function Invoke-TryCatchTest ($PSScriptToExecute)
+{
+	Try
+	{
+		& $PSScriptToExecute
+	}
+	Catch [System.Exception]
+	{
+		$chk = $True
+		$er = $Error[0].FullyQualifiedErrorId
+		$erMsg = $Error[0]
+	}
+	Finally
+	{
+		$resp = @{
+			IsThrow = $chk;
+			ErrDescription = $er;
+			ErrMessage = $erMsg
+		}
+	}
+
+	Return $resp
+}
+
+# Test begin!
+
+# Commons-Validators.ps1
 Describe "Validate-AbsoluteUriByString" {
+	
 	Context "Good Uri" {
 		$uri = "https://google.com"
 		It "Should return True" {
 			Validate-AbsoluteUriByString -Uri $uri |Should Be $True
 		}
 	}
+	
 	Context "Bad Uri" {
 		$uri = "httpgooglecom"
 		It "Should return False" {
 			Validate-AbsoluteUriByString -Uri $uri | Should Be $False
 		}
 	}
+
+	Context "Bad parameter" {
+		$uri = [PSCustomObject]::new()
+		It "Should throw an error" {
+			$r = Invoke-TryCatchTest -PSScriptToExecute {Validate-AbsoluteUriByString -Uri $uri}
+			$r.IsThrow | Should Be $True
+		}
+	}
 }
 Describe "Validate-AbsoluteUriBySystemUri" {
+	
 	Context "Good Uri" {
-		$uri = New-FakeUri
+		$uri = Get-UriFromString -UriString "https://google.com"
 		It "Should return True" {
 			Validate-AbsoluteUriBySystemUri -SysUri $uri |Should Be $True
 		}
 	}
+	
 	Context "Bad Uri" {
-		$uri = ""
+		$uri = Get-UriFromString -UriString "/test"
 		It "Should return False" {
 			Validate-AbsoluteUriBySystemUri -SysUri $uri | Should Be $False
 		}
 	}
-}
-Describe "Get-GlobalGitDataObject" {
-	Context "Return expected type" {
-		$co = "I'm a Singleton"
-		It "Get-GlobalGitDataObject should Return specific object" {
-			Mock -CommandName Get-Singleton -MockWith {Return $co}
-			Get-GlobalGitDataObject | Should Be "I'm a Singleton"
+
+	Context "Bad parameter" {
+		$uri = ""
+		It "Should throw an error" {
+			$r = Invoke-TryCatchTest -PSScriptToExecute {Validate-AbsoluteUriByString -Uri $uri}
+			$r.IsThrow | Should Be $True
 		}
 	}
 }
+
+# Get-SystemUriFromUrl.ps1
 Describe "Get-SystemUriFromUrl" {
+
 	Context "Well-formed url" {
 		$url = "https://google.com"
 		It "Should return a System.Uri type object"{
 			Get-SystemUriFromUrl -Url $url | Should BeOfType System.Uri
 		}
 	}
+	
 	Context "Bad-formed url" {
-		$url = "ht"
+		$url = "folder"
 		It "Should throw error in case of bad url"{
-			try
-			{
-				Get-SystemUriFromUrl -Url $url
-			}
-			catch [System.Exception]
-			{
-				$m = $error[0]
-			}
-			finally
-			{
-				$m | Should Be "Bad-formed url error" 
-			}
+			$r = Invoke-TryCatchTest -PSScriptToExecute {Get-SystemUriFromUrl -Url $url}
+			$r.IsThrow | Should Be $True
+			$r.ErrMessage | Should Be "Bad-formed url error"
+		}
+	}
+
+	Context "Bad parameter" {
+		$url = [PSCustomObject]::new()
+		It "Should throw an error" {
+			$r = Invoke-TryCatchTest -PSScriptToExecute {Get-SystemUriFromUrl -Url $url}
+			$r.IsThrow | Should Be $True
+			$r.ErrDescription | Should Match "ParameterArgumentValidationError"
 		}
 	}
 }
 
 #GitFoldersFilesClasses.ps1 <
+
+
+
+
+
+Describe "Validate-GithubUrl" {
+	Context "Good github url" {
+		New-FakeGitUri -Author 
+		It "Should return an array of 5-string-item" {
+
+			Validate-GithubUrl -$UrlToParse
+		}
+	}
+
+	Context "Github url bad-formed" {
+		It "Should return False" {
+
+		}
+	}
+
+	Context "Not Github url" {
+		It "Should return false"
+	}
+}
+
 Describe "New-GlobalGitDataObject" {
+
 	Context "Good parameters"{
-			$tmp = "TEMP-FOLDER"
-			$url = New-FakeUri
+		$tmp = "TEMP-FOLDER"
+		$url = New-FakeGitUri -Author $Author -Repo $Repo -Branch $Branch -RootFolder $FirstDirPath
+		$fo = Get-FakeGitAccountDetails -Author $Author -Repo $Repo -Branch $Branch -RootFolder $FirstDirPath
+		Add-Member -InputObject $fo -MemberType NoteProperty -Name TempFolder -Value $TempFolder
+
+		It "Should create a well-formed GlobalGitDataObject" {
+			Mock -CommandName New-Singleton -ParameterFilter {$parsed -eq $fo} -Verifiable
+			Mock -CommandName New-Singleton
 			$gdo = New-GlobalGitDataObject -UrlToParse $url -TempFolder $tmp
-		It "Should return a GlobalGitDataObject type object" {
 			$gdo.GetType() | Should Be GlobalGitDataObject
+			Assert-VerifiableMocks
 		}
-		It "return UrlPrePrefix" {
-			$gdo.UrlPrePrefix | Should Be $script:TstUrlPrePrefix
-		}
-		It "return UrlPrePostfix" {
-			$gdo.UrlPrePostfix | Should Be $script:TstUrlPrePostfix
-		}
-		It "return UrlPostPrefix" {
-			$gdo.UrlPostPrefix | Should Be $script:TstUrlPostPrefix
-		}
-		It "return Author" {
-			$gdo.Author | Should Be 'RobDesideri'
-		}
-		It "return Repo" {
-			$gdo.Repo | Should Be 'GitDownFolder'
-		}
-		It "return Branch" {
-			$gdo.Branch | Should Be 'develop'
-		}
-		It "return FirstDirPath" {
-			$gdo.FirstDirPath | Should Be 'test/resources'
-		}
-		It "return TempFolder" {
-			$gdo.TempFolder | Should Be $tmp
+	}
+
+	Context "Bad parameters" {
+		$tmp = ""
+		$url = New-FakeGitUri -Author $Author -Repo $Repo -Branch $Branch -RootFolder $FirstDirPath
+	}
+}
+Describe "Get-GlobalGitDataObject" {
+	Context "Return expected type" {
+		$co = "I'm a Singleton"
+
+		It "Get-GlobalGitDataObject should Return specific object" {
+			Mock -CommandName Get-Singleton -MockWith {Return $co}
+			Get-GlobalGitDataObject | Should Be "I'm a Singleton"
 		}
 	}
 }
@@ -335,37 +432,76 @@ Describe "Get-SingletonVarName" {
 	}
 }
 Describe "Test-SingletonIsLive" {
-	Mock -CommandName Get-SingletonVarName -MockWith {"SCN"}
-	Context "Empty parameter" {
-		It "Should trow error" {
-			Mock -CommandName Get-Variable -MockWith {}
-			try
-			{
-				Test-SingletonIsLive -SingletonClassName "" 
-			}
-			catch [System.Exception]
-			{
-				$c = $True
-			}
-			finally
-			{
-				Assert-MockCalled Get-SingletonVarName -Exactly 0
-				Assert-MockCalled Get-Variable -Exactly 0
-				$c | Should Be $True
-			}
-		}
-	}
+	$ObjectClassName = "ASingletonClass"
+	$SingletonVarName = "TheSingletonVarName"
+	Mock -CommandName Get-SingletonVarName -MockWith {Return $SingletonVarName}
+	Mock -CommandName Get-Variable -MockWith {}
+	
 	Context "Singleton exists" {
-		$a = ""
-		Mock -CommandName Get-Variable -MockWith {Return $a}
+		$VarContainingSingletonInstance = "SingletonInstance"
+		Mock -CommandName Get-Variable -ParameterFilter {$sn -eq $SingletonVarName} -MockWith {Return $VarContainingSingletonInstance}
+		
 		It "Should return True" {
-			Test-SingletonIsLive -SingletonClassName "Class Name" | Should Be $True
+			Test-SingletonIsLive -SingletonClassName $ObjectClassName | Should Be $True
 		}
 	}
+	
 	Context "Singleton not exists" {
-		Mock -CommandName Get-Variable -MockWith {}
+		$VarContainingSingletonInstance = $null
+		Mock -CommandName Get-Variable -ParameterFilter {$sn = $SingletonVarName} -MockWith {Return $VarContainingSingletonInstance}
 		It "Should return False" {
 			Test-SingletonIsLive -SingletonClassName "Class Name" | Should Be $False
 		}
 	}
+
+	Context "Bad parameter" {
+		$sct = {Test-SingletonIsLive -SingletonClassName ""}
+		It "Should trow error" {
+			$resp = Invoke-TryCatchTest -PSScriptToExecute $sct
+			$resp.IsThrow | Should Be $True
+			$resp.ErrDescription | Should Match "ParameterArgumentValidationErrorEmptyStringNotAllowed"
+		}
+	}
+}
+
+Describe "Get-Singleton" {
+	$ObjectClassName = "ASingletonClass"
+	$SingletonVarName = "TheSingletonVarName"
+	Mock -CommandName Get-SingletonVarName -MockWith {Return $SingletonVarName}
+	Mock -CommandName Test-SingletonIsLive -MockWith {}
+	Mock -CommandName Get-Variable -MockWith {}
+
+	Context "Singleton exists" {
+		$VarContainingSingletonInstance = "SingletonInstance"
+		Mock -CommandName Test-SingletonIsLive -MockWith {Return $True}
+		Mock -CommandName Get-Variable -MockWith {Return $VarContainingSingletonInstance}
+		It "Should return instance of required class" {
+			Get-Singleton | Should Be "SingletonInstance"
+		}
+	}
+	Context "Singleton not exists" {
+		$ObjectClassName = "ASingletonClass"
+		$VarContainingSingletonInstance = $null
+		Mock -CommandName Test-SingletonIsLive -MockWith {Return $False}
+		It "Should return null" {
+			Get-Singleton | Should Be $null
+			Assert-MockCalled -CommandName Get-SingletonVarName -Exactly 0
+			Assert-MockCalled -CommandName Get-Variable -Exactly 0
+		}
+	}
+	Context "Bad parameters" {
+		$ObjectClassName = ""
+		$sct = {Get-Singleton -ObjectClassName $ObjectClassName}
+		It "Should throw an error" {
+			$resp = Invoke-TryCatchTest -PSScriptToExecute $sct
+			$resp.IsThrow | Should Be $True
+		}
+		It "Should not execute other statements" {
+			Invoke-TryCatchTest -PSScriptToExecute $sct
+			Assert-MockCalled -CommandName Test-SingletonIsLive -Exactly 0
+			Assert-MockCalled -CommandName Get-SingletonVarName -Exactly 0
+			Assert-MockCalled -CommandName Get-Variable -Exactly 0
+		}
+	}
+
 }
