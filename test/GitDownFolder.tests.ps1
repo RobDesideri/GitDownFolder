@@ -1,7 +1,7 @@
-# Import testing helpers dependencies
-& "$PSScriptRoot\InstallTestingDepends.ps1"
-Import-Module "$PSScriptRoot\lib\PowerShellTestingHelpers"
-$ModuleManifestName = 'GitDownFolder.psd1'
+# Import testing resources
+& "$PSScriptRoot\shared.ps1"
+
+$ModuleManifestName = 'ro.psd1'
 $ModuleManifestPath = "$PSScriptRoot\..\src\$ModuleManifestName"
 
 if (!$SuppressImportModule) {

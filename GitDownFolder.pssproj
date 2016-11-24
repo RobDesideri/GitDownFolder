@@ -58,6 +58,7 @@
     <Compile Include="test\GitDownFolder.public.tests.ps1" />
     <Compile Include="test\GitDownFolder.tests.ps1" />
     <Compile Include="test\InstallTestingDepends.ps1" />
+    <Compile Include="test\shared.ps1" />
     <Compile Include="test\TestDepends.psd1" />
   </ItemGroup>
   <ItemGroup>
