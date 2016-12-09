@@ -6,18 +6,27 @@ Function Invoke-GitDownFolder
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$False,Position=0)]
         [String]$GitFolderUrlToDownload,
 		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$False,Position=1)]
-        [String]$DestinationPath,
-		[Switch]$KeepRootFolderPath
+        [String]$DestinationPath
 	)
 
-	$UrlObj = Get-SystemUriFromUrl -Url $GitFolderUrlToDownload
-	Set-ScriptVars -UrlAsObject $UrlObj
-	$gdo = Get-GlobalGitDataObject
-	$rootFolder =  New-GitFolder -FolderName "ROOT" -DirPath $gdo.FirstDirPath
-	$rootFolderList = New-GitFolderList
-	$rootFolderList.AddFolder($rootFolder)
-	Start-FilesFoldersScan -GitFolderList $rootFolderList
-	$bol = $False
-	If($KeepRootFolderPath){$bol = $True}
-	Move-GitFolder -DestPath $DestinationPath -KeepRootFolderPath $bol
+	$GithubUrl = Get-SystemUriFromUrl -Url $GitFolderUrlToDownload
+	$TempFolder = New-TemporaryFolder
+	
+	#Instance the GlobalGitDataObject
+	$Singleton = [Singleton]::new()
+	$GlobalGitDataObject = [GlobalGitData]::new($GithubUrl, $Singleton)
+	
+	#Instance the root GitFolderList
+	$RootGitFolderPath =  $GlobalGitDataObject.RootDirPath
+	$RootGitFolder = [GitFolder]::new($RootGitFolderPath, $GlobalGitDataObject)
+	$RootGitFolderList = [GitFolderList]::new()
+	$RootGitFolderList.AddFolder($RootGitFolder)
+
+	#Pass the root GitFolderList and download all!
+	$Downloader = [GitDownloader]::new($GlobalGitDataObject, $TempFolderPath)
+	$Downloader.Start($RootGitFolderList)
+
+	#Move temp folder to DesinationPath
+	Move-Item -Path $TempFolderPath -Destination $DestPath
+	Remove-Item -Path $TempFolderPath -Force -Recurse
 }

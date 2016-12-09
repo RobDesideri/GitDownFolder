@@ -1,0 +1,5 @@
+Riprogettazione in corso:
+- da funzioni a oggetti -> da PS a C#
+% di avanzamento = ?
+
+tutto da testare

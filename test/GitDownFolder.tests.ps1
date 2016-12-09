@@ -1,7 +1,7 @@
 # Import testing resources
-& "$PSScriptRoot\shared.ps1"
+& "$PSScriptRoot\SharedSetup.ps1"
 
-$ModuleManifestName = 'ro.psd1'
+$ModuleManifestName = 'GitDownFolder.psd1'
 $ModuleManifestPath = "$PSScriptRoot\..\src\$ModuleManifestName"
 
 if (!$SuppressImportModule) {

@@ -36,7 +36,15 @@
     <Folder Include="src\script\" />
     <Folder Include="src\script\private\" />
     <Folder Include="src\script\public\" />
-    <Folder Include="test\data\" />
+    <Folder Include="test\lib\PowerShellTestingHelpers\" />
+    <Folder Include="test\lib\PowerShellTestingHelpers\script\" />
+    <Folder Include="test\lib\PowerShellTestingHelpers\script\private\" />
+    <Folder Include="test\resources\" />
+    <Folder Include="test\resources\filesystem\nested1\" />
+    <Folder Include="test\resources\data\" />
+    <Folder Include="test\resources\filesystem\" />
+    <Folder Include="test\resources\mock\" />
+    <Folder Include="test\resources\constant\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ScriptAnalyzerSettings.psd1" />
@@ -46,19 +54,25 @@
     <Compile Include="src\script\private\Commons-Validators.ps1" />
     <Compile Include="src\script\private\Get-SystemUriFromUrl.ps1" />
     <Compile Include="src\script\private\GitFoldersFilesClasses.ps1" />
-    <Compile Include="src\script\private\Move-GitFolder.ps1" />
     <Compile Include="src\script\private\New-TemporaryFolder.ps1" />
-    <Compile Include="src\script\private\Singleton-Handler.ps1" />
-    <Compile Include="src\script\private\Start-FilesDownload.ps1" />
-    <Compile Include="src\script\private\Start-FilesFoldersScan.ps1" />
     <Compile Include="src\script\public\Invoke-GitDownFolder.ps1" />
-    <Compile Include="src\script\private\Set-ScriptVars.ps1" />
-    <Compile Include="test\data\data.ps1" />
+    <Compile Include="test\resources\constant\ConstantPattern.ps1" />
+    <Compile Include="test\resources\data\GitData.ps1" />
     <Compile Include="test\GitDownFolder.private.tests.ps1" />
+    <Compile Include="test\GitDownFolder.private.tests.tests.ps1" />
     <Compile Include="test\GitDownFolder.public.tests.ps1" />
     <Compile Include="test\GitDownFolder.tests.ps1" />
     <Compile Include="test\InstallTestingDepends.ps1" />
-    <Compile Include="test\shared.ps1" />
+    <Compile Include="test\resources\data\TempResources.ps1" />
+    <Compile Include="test\resources\data\Url.ps1" />
+    <Compile Include="test\resources\filesystem\file1.txt" />
+    <Compile Include="test\resources\filesystem\file2.txt" />
+    <Compile Include="test\resources\filesystem\nested1\file1-1.ps1" />
+    <Compile Include="test\resources\filesystem\nested1\file1-2.ps1" />
+    <Compile Include="test\resources\mock\General-Stub.ps1" />
+    <Compile Include="test\resources\mock\GitFolder-Mock.ps1" />
+    <Compile Include="test\resources\mock\GitFoldersFilesClasses-Stub.ps1" />
+    <Compile Include="test\SharedSetup.ps1" />
     <Compile Include="test\TestDepends.psd1" />
   </ItemGroup>
   <ItemGroup>
@@ -67,7 +81,11 @@
     <Content Include="README.md" />
     <Content Include="ReleaseNotes.md" />
     <Content Include="src\README.md" />
-    <Content Include="src\script\private\New-Folder.ps1" />
+    <Content Include="src\script\private\Github.cs" />
+    <Content Include="test\resources\constant\README.md" />
+    <Content Include="test\resources\data\README.md" />
+    <Content Include="test\resources\filesystem\README.md" />
+    <Content Include="test\resources\mock\README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
