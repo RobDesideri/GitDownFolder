@@ -1,5 +1,5 @@
-Riprogettazione in corso:
-- da funzioni a oggetti -> da PS a C#
-% di avanzamento = ?
+Testato lo script "GitDownloaderClass.ps1": 
+	- Ok se c'è una sola cartella come sottocartella: la seconda non la scarica
 
-tutto da testare
+
+tutto da (ri)testare

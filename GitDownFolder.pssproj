@@ -36,9 +36,6 @@
     <Folder Include="src\script\" />
     <Folder Include="src\script\private\" />
     <Folder Include="src\script\public\" />
-    <Folder Include="test\lib\PowerShellTestingHelpers\" />
-    <Folder Include="test\lib\PowerShellTestingHelpers\script\" />
-    <Folder Include="test\lib\PowerShellTestingHelpers\script\private\" />
     <Folder Include="test\resources\" />
     <Folder Include="test\resources\filesystem\nested1\" />
     <Folder Include="test\resources\data\" />
@@ -53,7 +50,7 @@
     <Compile Include="Depends.psd1" />
     <Compile Include="src\script\private\Commons-Validators.ps1" />
     <Compile Include="src\script\private\Get-SystemUriFromUrl.ps1" />
-    <Compile Include="src\script\private\GitFoldersFilesClasses.ps1" />
+    <Compile Include="src\script\private\GitDownloaderClass.ps1" />
     <Compile Include="src\script\private\New-TemporaryFolder.ps1" />
     <Compile Include="src\script\public\Invoke-GitDownFolder.ps1" />
     <Compile Include="test\resources\constant\ConstantPattern.ps1" />
@@ -74,6 +71,7 @@
     <Compile Include="test\resources\mock\GitFoldersFilesClasses-Stub.ps1" />
     <Compile Include="test\SharedSetup.ps1" />
     <Compile Include="test\TestDepends.psd1" />
+    <Compile Include="ToDo.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="InstallPSDepend.ps1" />
@@ -81,7 +79,6 @@
     <Content Include="README.md" />
     <Content Include="ReleaseNotes.md" />
     <Content Include="src\README.md" />
-    <Content Include="src\script\private\Github.cs" />
     <Content Include="test\resources\constant\README.md" />
     <Content Include="test\resources\data\README.md" />
     <Content Include="test\resources\filesystem\README.md" />
